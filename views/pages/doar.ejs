@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include("../patrials/head") %>
+</head>
+
+<body class="desfocar">
+    <center>
+        <div class="page-box">
+            <br><br>
+            <h1>Doar</h1>
+            <main>
+                <form action="/doar" method="POST" class="formItens">
+                    <table>
+                        <tr>
+                            <td><input type="int" name="item_doado" placeholder="Item Doado" required></td>
+                        </tr>
+                        <tr>
+                            <td><input type="int" name="quantidade" placeholder="Quantidade" required></td>
+                        </tr>
+                        <tr>
+                            <td><input type="date" name="data" placeholder="Data" required></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" name="codigo_da_sala" placeholder="Código da Sala" required></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" name="docente" placeholder="Docente" required></td>
+                        </tr>
+                    </table>
+                    <button type="submit">CONFIRMAR</button><br><br>
+                </form>
+            </main>
+        </div>
+        <a href="/"><button type="submit">VOLTAR</button></a><br>
+    </center>
+    <%- include("../patrials/footer") %>
+</body>
+
+</html>

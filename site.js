@@ -3,26 +3,31 @@ const session = require("express-session"); //adiciona o gerenciador de session 
 const sqlite3 = require("sqlite3").verbose(); //adiciona a biblioteca para manipular arquivos do SQLite3
 
 const app = express(); //armazena as chamadas e propriedades da biblioteca express
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 const PORT = 8000; //configura a porta TCP do express
 
 //conexão com oo BD
 const db = new sqlite3.Database("doacao.db");
 db.serialize(() => {
-    db.run("DROP TABLE IF EXISTS doacao");
     db.run(
         "CREATE TABLE IF NOT EXISTS login (id INTEGER PRIMARY KEY AUTOINCREMENT, nomecompleto TEXT, email TEXT, senha TEXT, confirmarsenha TEXT)"
+    );
+    db.run(
+        "CREATE TABLE IF NOT EXISTS doar (id INTEGER PRIMARY KEY AUTOINCREMENT, item_doado INT, quantidade INT, data DATE, codigo_da_sala TEXT, docente TEXT, pontuacao_final INT, usuario_id INT)"
     );
 });
 
 //configura a rota '/static' para a pasta '__dirname/static' do seu servidor
 app.use('/static', express.static(__dirname + '/static'));
 
-app.use(session({
-    secret: 'segredo', // pode ser qualquer string
-    resave: false,
-    saveUninitialized: true
-}));
+app.use(
+    session({
+        secret: 'segredo', // pode ser qualquer string
+        resave: false,
+        saveUninitialized: true
+    }));
 
 //configuração Express para processar requisições POST com BODY PARAMETERS
 //app.use(bodyparser.urlencoded({extended: true})); - Versão Express <= 4.x.x
@@ -52,14 +57,38 @@ app.post("/login", (req, res) => {
     db.run(insertQuery, [nomecompleto, email, senha, confirmarsenha], function (err) {
         if (err) throw err;
         req.session.AlunoLogado = nomecompleto;
+        req.session.usuario_id = this.lastID;
         res.redirect("/");
     });
 });
 
 app.get("/ranking", (req, res) => {
     console.log("GET /ranking")
-    res.render("pages/ranking");
+    if (req.session.usuario_id) {
+        const query = `
+  SELECT codigo_da_sala,
+         SUM(item_doado * quantidade) AS pontuacao_total,
+         SUM(quantidade) AS total_itens,
+         MAX(data) AS ultima_data,
+         MAX(docente) AS docente
+  FROM doar
+  GROUP BY codigo_da_sala
+  ORDER BY pontuacao_total DESC
+`;
+        db.all(query, [], (err, row) => {
+            if (err) throw err;
+            console.log(JSON.stringify(row));
+            //renderiza a pagina ranking com a lista de doacoes coletada do BD pelo SELECT 
+            res.render("pages/ranking", { titulo: "Tabela de Ranking", dados: row, req: req });
+        });
+    } else {
+        res.redirect("/confirmacao")
+    }
 })
+
+app.get("/confirmacao", (req, res) => {
+    res.render("pages/confirmacao", { titulo: "CONFIRMAÇÃO", req: req });
+});
 
 app.get("/info", (req, res) => {
     console.log("GET /info")
@@ -67,9 +96,20 @@ app.get("/info", (req, res) => {
 })
 
 app.get("/doar", (req, res) => {
-    console.log("GET /doar")
-    res.render("pages/doar");
+    res.render("pages/doar", { req: req });
 })
+app.post("/doar", (req, res) => {
+    const { item_doado, quantidade, data, codigo_da_sala, docente } = req.body;
+    const usuario_id = req.session.usuario_id;
+    const pontuacao_final = item_doado * quantidade;
+
+    const query = `INSERT INTO doar (item_doado, quantidade, data, codigo_da_sala, docente, usuario_id, pontuacao_final)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    db.run(query, [item_doado, quantidade, data, codigo_da_sala, docente, usuario_id, pontuacao_final], function (err) {
+        if (err) throw err;
+        res.redirect("/conclusao");
+    });
+});
 
 app.get("/conclusao", (req, res) => {
     console.log("GET /conclusao")
@@ -78,12 +118,17 @@ app.get("/conclusao", (req, res) => {
 
 app.get("/logout", (req, res) => {
     req.session.destroy((err) => {
-      if (err) {
-        return res.redirect("/");
-      }
-      res.redirect("/");
+        if (err) {
+            return res.redirect("/");
+        }
+        res.redirect("/");
     });
-  })
+})
+
+app.use('/{*erro}', (req, res) => {
+    //Envia uma resposta de erro 404
+    res.status(404).render('pages/erro', { titulo: "ERRO 404", req: req, msg: "404" });
+});
 
 app.listen(PORT, () => {
     console.log(`Servidor sendo executado na porta ${PORT}`);
