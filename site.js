@@ -64,8 +64,7 @@ app.post("/login", (req, res) => {
 
 app.get("/ranking", (req, res) => {
     console.log("GET /ranking")
-    if (req.session.usuario_id) {
-        const query = `
+    const query = `
   SELECT codigo_da_sala,
          SUM(item_doado * quantidade) AS pontuacao_total,
          SUM(quantidade) AS total_itens,
@@ -75,15 +74,12 @@ app.get("/ranking", (req, res) => {
   GROUP BY codigo_da_sala
   ORDER BY pontuacao_total DESC
 `;
-        db.all(query, [], (err, row) => {
-            if (err) throw err;
-            console.log(JSON.stringify(row));
-            //renderiza a pagina ranking com a lista de doacoes coletada do BD pelo SELECT 
-            res.render("pages/ranking", { titulo: "Tabela de Ranking", dados: row, req: req });
-        });
-    } else {
-        res.redirect("/confirmacao")
-    }
+    db.all(query, [], (err, row) => {
+        if (err) throw err;
+        console.log(JSON.stringify(row));
+        //renderiza a pagina ranking com a lista de doacoes coletada do BD pelo SELECT 
+        res.render("pages/ranking", { titulo: "Tabela de Ranking", dados: row, req: req });
+    });
 })
 
 app.get("/confirmacao", (req, res) => {
@@ -96,8 +92,11 @@ app.get("/info", (req, res) => {
 })
 
 app.get("/doar", (req, res) => {
+    if (!req.session.usuario_id) {
+        return res.redirect("/confirmacao");
+    }
     res.render("pages/doar", { req: req });
-})
+});
 app.post("/doar", (req, res) => {
     const { item_doado, quantidade, data, codigo_da_sala, docente } = req.body;
     const usuario_id = req.session.usuario_id;
