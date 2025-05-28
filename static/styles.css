@@ -137,6 +137,13 @@ table tbody tr:hover {
     background-color: #ffdab9;
 }
 
+tfoot {
+    background-color: #cc3300;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+
 img {
     width: 400px;
     margin-top: 10px;

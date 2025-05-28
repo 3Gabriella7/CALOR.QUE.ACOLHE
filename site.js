@@ -17,6 +17,7 @@ db.serialize(() => {
     db.run(
         "CREATE TABLE IF NOT EXISTS doar (id INTEGER PRIMARY KEY AUTOINCREMENT, item_doado INT, quantidade INT, data DATE, codigo_da_sala TEXT, docente TEXT, pontuacao_final INT, usuario_id INT)"
     );
+    //db.run("DELETE FROM doar WHERE id = 4");
 });
 
 //configura a rota '/static' para a pasta '__dirname/static' do seu servidor
