@@ -38,9 +38,9 @@ app.set('view engine', 'ejs'); //habilita a 'view engine' para usar o 'ejs'
 
 //rota '/' (raiz) para o método GET /
 app.get("/", (req, res) => {
-    const nome = req.session.AlunoLogado || null;
+    const nome = req.session.NomeLogado || null;
     res.render("pages/index", { nome });
-    console.log("Nome da sessão:", req.session.AlunoLogado);
+    console.log("Nome da sessão:", req.session.NomeLogado);
 })
 
 app.get("/login", (req, res) => {
@@ -57,7 +57,7 @@ app.post("/login", (req, res) => {
     const insertQuery = "INSERT INTO login (nomecompleto, email, senha, confirmarsenha) VALUES (?, ?, ?, ?)";
     db.run(insertQuery, [nomecompleto, email, senha, confirmarsenha], function (err) {
         if (err) throw err;
-        req.session.AlunoLogado = nomecompleto;
+        req.session.NomeLogado = nomecompleto;
         req.session.usuario_id = this.lastID;
         res.redirect("/");
     });
@@ -79,7 +79,7 @@ app.get("/ranking", (req, res) => {
         if (err) throw err;
         console.log(JSON.stringify(row));
         //renderiza a pagina ranking com a lista de doacoes coletada do BD pelo SELECT 
-        res.render("pages/ranking", { titulo: "Tabela de Ranking", dados: row, req: req });
+        res.render("pages/ranking", { titulo: "Tabela Ranking", dados: row, req: req });
     });
 })
 
