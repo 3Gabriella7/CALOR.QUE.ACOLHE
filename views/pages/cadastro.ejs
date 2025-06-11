@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+
+<body>
+    <center>
+        <div class="page-box">
+            <br>
+            <h1>Cadastre-se</h1>
+                    <main>
+                        <form action="/cadastro" method="POST" class="formItens">
+                            <table>
+                                <tr>
+                                    <td><input type="text" name="username" placeholder="Nome de Usuário" required></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="email" name="email" placeholder="Email" required></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="password" name="senha" placeholder="Senha" required></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="password" name="confirmarsenha" placeholder="Confirmar Senha"
+                                            required></td>
+                                </tr>
+                            </table>
+                            <button type="submit">CADASTRAR</button><br>
+                        </form>
+                    </main>
+        </div><br><br>
+        <a href="/login"><button type="submit">JÁ TENHO CADASTRO</button></a>
+    </center>
+    <%- include("../patrials/footer") %>
+</body>
+
+</html>

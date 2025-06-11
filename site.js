@@ -18,6 +18,7 @@ db.serialize(() => {
         "CREATE TABLE IF NOT EXISTS doar (id INTEGER PRIMARY KEY AUTOINCREMENT, item_doado INT, quantidade INT, data DATE, codigo_da_sala TEXT, docente TEXT, pontuacao_final INT, usuario_id INT)"
     );
     //db.run("DELETE FROM doar WHERE id = 4");
+    //db.run("DELETE FROM login");
 });
 
 //configura a rota '/static' para a pasta '__dirname/static' do seu servidor
@@ -46,20 +47,56 @@ app.get("/", (req, res) => {
 app.get("/login", (req, res) => {
     const mensagem = req.query.mensagem || "";
     res.render("pages/login", { mensagem });
-})
+});
 app.post("/login", (req, res) => {
-    const { nomecompleto, email, senha, confirmarsenha } = req.body;
+    console.log("POST /login");
+    console.log(JSON.stringify(req.body));
 
-    if (senha !== confirmarsenha) {
-        return res.redirect("/login?mensagem=As senhas não batem");
+    const { nomecompleto, email, senha } = req.body;
+
+    if ( !nomecompleto || !email || !senha ) {
+        return res.redirect("/login?mensagem=Preencha todos os campos");
     }
 
-    const insertQuery = "INSERT INTO login (nomecompleto, email, senha, confirmarsenha) VALUES (?, ?, ?, ?)";
-    db.run(insertQuery, [nomecompleto, email, senha, confirmarsenha], function (err) {
+    const query = "SELECT * FROM login WHERE email=? AND senha=?";
+    db.get(query, [email, senha], (err, row) => {
         if (err) throw err;
-        req.session.NomeLogado = nomecompleto;
-        req.session.usuario_id = this.lastID;
-        res.redirect("/");
+
+        console.log(`row: ${JSON.stringify(row)}`);
+        if (row) {
+            req.session.loggedin = true;
+            req.session.email = row.email;
+            req.session.usuario_id = row.id;
+            req.session.NomeLogado = nomecompleto; // Nome digitado, mesmo que não seja o do banco
+            res.redirect("/");
+        } else {
+            res.redirect("/login?mensagem=Usuário ou senha inválidos");
+        }
+    });
+});
+
+app.get("/cadastro", (req, res) => {
+    res.render("pages/cadastro", { req });
+});
+app.post("/cadastro", (req, res) => {
+    console.log("POST /cadastro");
+    console.log(JSON.stringify(req.body));
+
+    const { nomecompleto, email, senha, confirmarsenha } = req.body;
+
+    if (!email || !senha || !confirmarsenha) {
+        return res.redirect("/cadastro?mensagem=Preencha todos os campos");
+    }
+
+    if (senha !== confirmarsenha) {
+        return res.redirect("/cadastro?mensagem=As senhas não batem");
+    }
+
+    const insertQuery = "INSERT INTO login (email, senha, confirmarsenha) VALUES (?, ?, ?)";
+    db.run(insertQuery, [email, senha, confirmarsenha], function (err) {
+        if (err) throw err;
+        console.log("Novo usuário cadastrado:", nomecompleto);
+        return res.redirect("/login?mensagem=Cadastro realizado com sucesso");
     });
 });
 
